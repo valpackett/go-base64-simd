@@ -5,10 +5,10 @@ import (
 	"unsafe"
 )
 
-// #include <stdint.h>
+// #include <stdlib.h>
 // struct base64_state;
-// void base64_encode(const char *src, __size_t srclen, char *out, __size_t *outlen, int flags);
-//  int base64_decode(const char *src, __size_t srclen, char *out, __size_t *outlen, int flags);
+// void base64_encode(const char *src, size_t srclen, char *out, size_t *outlen, int flags);
+//  int base64_decode(const char *src, size_t srclen, char *out, size_t *outlen, int flags);
 import "C"
 
 type Encoding struct{}
@@ -20,10 +20,10 @@ func (_ *Encoding) Encode(dst, src []byte) {
 	if len(src) < 1 {
 		return
 	}
-	dstlen := C.__size_t(0)
+	dstlen := C.size_t(0)
 	C.base64_encode(
 		((*C.char)(unsafe.Pointer(&src[0]))),
-		C.__size_t(len(src)),
+		C.size_t(len(src)),
 		((*C.char)(unsafe.Pointer(&dst[0]))),
 		&dstlen,
 		0,
@@ -44,10 +44,10 @@ func (_ *Encoding) Decode(dst, src []byte) (n int, err error) {
 	if len(src) < 1 {
 		return 0, nil
 	}
-	dstlen := C.__size_t(0)
+	dstlen := C.size_t(0)
 	result := C.base64_decode(
 		((*C.char)(unsafe.Pointer(&src[0]))),
-		C.__size_t(len(src)),
+		C.size_t(len(src)),
 		((*C.char)(unsafe.Pointer(&dst[0]))),
 		&dstlen,
 		0,
