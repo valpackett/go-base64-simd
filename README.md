@@ -11,6 +11,15 @@ BenchmarkDecodeSIMD-16           1000000              1031 ns/op        1984.91 
 BenchmarkDecodeStdlib-16          200000              6687 ns/op         306.24 MB/s
 ```
 
+```
+Intel Xeon E3-1220 @ 3.10GHz (AVX)
+go 1.8.3, Linux 3.10.0
+BenchmarkEncodeSIMD-4             500000              2480 ns/op         825.75 MB/s
+BenchmarkEncodeStdlib-4           200000              6693 ns/op         305.97 MB/s
+BenchmarkDecodeSIMD-4             500000              2541 ns/op         805.91 MB/s
+BenchmarkDecodeStdlib-4            50000             31478 ns/op          65.06 MB/s
+```
+
 ## Internals
 
 The C library [was modified to allow unity builds](https://github.com/myfreeweb/base64).
