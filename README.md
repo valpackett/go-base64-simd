@@ -22,8 +22,6 @@ BenchmarkDecodeStdlib-4            50000             31478 ns/op          65.06 
 
 ## Internals
 
-The C library [was modified to allow unity builds](https://github.com/myfreeweb/base64).
-
 This should use assembly but currently uses cgo.
 
 Initially I attempted to use the terrible yet amazing [c2goasm](https://github.com/minio/c2goasm) hack.
