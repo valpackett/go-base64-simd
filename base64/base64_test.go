@@ -51,39 +51,28 @@ func TestDecode(t *testing.T) {
 	sameDecode("Zm9vYmFy", t)
 }
 
-func BenchmarkEncodeSIMD(b *testing.B) {
-	randomCrap := make([]byte, 2048)
-	_, err := rand.Read(randomCrap)
-	if err != nil {
-		b.Fatal(err)
-	}
-	for i := 0; i < b.N; i++ {
-		StdEncoding.EncodeToString(randomCrap)
-		b.SetBytes(2048)
-	}
-}
-
 func BenchmarkEncodeStdlib(b *testing.B) {
 	randomCrap := make([]byte, 2048)
 	_, err := rand.Read(randomCrap)
 	if err != nil {
 		b.Fatal(err)
 	}
+	randomCrapBase := make([]byte, base64.StdEncoding.EncodedLen(len(randomCrap)))
 	for i := 0; i < b.N; i++ {
-		base64.StdEncoding.EncodeToString(randomCrap)
+		base64.StdEncoding.Encode(randomCrapBase, randomCrap)
 		b.SetBytes(2048)
 	}
 }
 
-func BenchmarkDecodeSIMD(b *testing.B) {
+func BenchmarkEncodeSIMD(b *testing.B) {
 	randomCrap := make([]byte, 2048)
 	_, err := rand.Read(randomCrap)
 	if err != nil {
 		b.Fatal(err)
 	}
-	randomCrapBase := base64.StdEncoding.EncodeToString(randomCrap)
+	randomCrapBase := make([]byte, base64.StdEncoding.EncodedLen(len(randomCrap)))
 	for i := 0; i < b.N; i++ {
-		StdEncoding.DecodeString(randomCrapBase)
+		StdEncoding.Encode(randomCrapBase, randomCrap)
 		b.SetBytes(2048)
 	}
 }
@@ -94,9 +83,64 @@ func BenchmarkDecodeStdlib(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	randomCrapBase := StdEncoding.EncodeToString(randomCrap)
+	randomCrapBase := make([]byte, base64.StdEncoding.EncodedLen(len(randomCrap)))
+	StdEncoding.Encode(randomCrapBase, randomCrap)
+	randomCrap2 := make([]byte, base64.StdEncoding.DecodedLen(len(randomCrapBase)))
 	for i := 0; i < b.N; i++ {
-		base64.StdEncoding.DecodeString(randomCrapBase)
+		base64.StdEncoding.Decode(randomCrap2, randomCrapBase)
 		b.SetBytes(2048)
+	}
+}
+
+func BenchmarkDecodeSIMD(b *testing.B) {
+	randomCrap := make([]byte, 2048)
+	_, err := rand.Read(randomCrap)
+	if err != nil {
+		b.Fatal(err)
+	}
+	randomCrapBase := make([]byte, base64.StdEncoding.EncodedLen(len(randomCrap)))
+	StdEncoding.Encode(randomCrapBase, randomCrap)
+	randomCrap2 := make([]byte, base64.StdEncoding.DecodedLen(len(randomCrapBase)))
+	for i := 0; i < b.N; i++ {
+		StdEncoding.Decode(randomCrap2, randomCrapBase)
+		b.SetBytes(2048)
+	}
+}
+
+func BenchmarkDecodeSIMDWithSkipPrepassNoSpace(b *testing.B) {
+	randomCrap := make([]byte, 2048)
+	_, err := rand.Read(randomCrap)
+	if err != nil {
+		b.Fatal(err)
+	}
+	randomCrapBase := make([]byte, base64.StdEncoding.EncodedLen(len(randomCrap)))
+	base64.StdEncoding.Encode(randomCrapBase, randomCrap)
+	randomCrap2 := make([]byte, base64.StdEncoding.DecodedLen(len(randomCrapBase)))
+	for i := 0; i < b.N; i++ {
+		StdEncoding.Decode(randomCrap2, SkipPrepass(randomCrapBase))
+		b.SetBytes(2048)
+	}
+}
+
+func BenchmarkDecodeSIMDWithSkipPrepassLineWrapped(b *testing.B) {
+	randomCrap := make([]byte, 2048)
+	_, err := rand.Read(randomCrap)
+	if err != nil {
+		b.Fatal(err)
+	}
+	randomCrapBasePre := make([]byte, base64.StdEncoding.EncodedLen(len(randomCrap)))
+	base64.StdEncoding.Encode(randomCrapBasePre, randomCrap)
+	randomCrapBase := make([]byte, 0)
+	for k := len(randomCrapBasePre); k >= 80; k -= 80 {
+		randomCrapBase = append(randomCrapBase, randomCrapBasePre[:80]...)
+		randomCrapBase = append(randomCrapBase, '\n')
+		randomCrapBasePre = randomCrapBasePre[80:]
+	}
+	randomCrapBase = append(randomCrapBase, randomCrapBasePre...)
+	rcbLen := int64(len(randomCrapBase))
+	randomCrap2 := make([]byte, base64.StdEncoding.DecodedLen(len(randomCrapBase)))
+	for i := 0; i < b.N; i++ {
+		StdEncoding.Decode(randomCrap2, SkipPrepass(randomCrapBase))
+		b.SetBytes(rcbLen)
 	}
 }

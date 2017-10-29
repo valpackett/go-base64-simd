@@ -1,16 +1,18 @@
 CC=clang-devel
+CXX=clang++-devel
 AMD64FLAGS?= -target x86_64-unknown-none -march=sandybridge -mno-red-zone
 386FLAGS?= -target i386-unknown-none
 ARMFLAGS?= -target armv7-unknown-none-gnueabi -mfpu=neon
 ARM64FLAGS?= -target aarch64-unknown-none -march=armv8-a
 PPCFLAGS?= -target powerpc-unknown-none
 PPC64FLAGS?= -target powerpc64-unknown-none
-CFLAGS= -O3 -pipe -fPIC -std=c99 \
-				 -mstackrealign -mllvm -inline-threshold=5000 \
-				 -fno-asynchronous-unwind-tables -fno-jump-tables \
-				 $(EXTRA_CFLAGS)
-BASE64_PATH?= $(HOME)/src/github.com/aklomp/base64
-BASE64_SRCS!= find $(BASE64_PATH)/lib -type f -name '*.c'
+COMMONFLAGS=	-O3 -pipe -fPIC \
+							-mstackrealign -mllvm -inline-threshold=5000 \
+							-fno-asynchronous-unwind-tables -fno-jump-tables
+CFLAGS=	$(COMMONFLAGS) -std=c99 $(EXTRA_CFLAGS)
+CXXFLAGS=	$(COMMONFLAGS) $(EXTRA_CXXFLAGS)
+BASE64_PATH?=	$(HOME)/src/github.com/aklomp/base64
+BASE64_SRCS!=	find $(BASE64_PATH)/lib -type f -name '*.c'
 
 noconfig:
 	rm -f $(BASE64_PATH)/lib/config.h
@@ -203,6 +205,9 @@ codec_choose_arm.syso: ../c/neon32/config.h Makefile $(BASE64_SRCS)
 
 codec_choose_arm64.syso: ../c/neon64/config.h Makefile $(BASE64_SRCS)
 	$(CC) $(CFLAGS) $(ARM64FLAGS) -I$(BASE64_PATH)/lib -I../c/neon64 -c -o $@ $(BASE64_PATH)/lib/codec_choose.c
+
+#skip_amd64.syso: ../c/skip_amd64.cpp Makefile
+#	$(CXX) $(CXXFLAGS) $(AMD64FLAGS) -c -o $@ ../c/skip_amd64.cpp
 
 .PHONY: noconfig
 
