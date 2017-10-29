@@ -65,5 +65,5 @@ func (enc *Encoding) DecodeString(s string) ([]byte, error) {
 }
 
 func (_ *Encoding) DecodedLen(n int) int {
-	return n / 4 * 3
+	return (n / 4 * 3) + 1
 }
